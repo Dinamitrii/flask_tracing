@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+
+    <link type="text/css"
+          rel="stylesheet"
+          href="{{ url_for('static',filename='styles/index.css') }}"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/favicon/apple-touch-icon.png') }}"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon/favicon-32x32.png') }}"/>
+    <link rel="icon" type="image/png" sizes="16x16" href=" {{ url_for('static', filename='images/favicon/favicon-16x16.png') }}"/>
+    <link rel="manifest" href="{{ url_for('static', filename='images/favicon/site.webmanifest') }}"/>
+    <link rel="mask-icon" href="{{ url_for('static', filename='images/favicon/safari-pinned-tab.svg', color='#5bbad5') }}"/>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}"/>
+
+    <meta name="msapplication-TileColor" content="#00aba9">
+    <meta name="msapplication-config" content="static/images/favicon/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+
+    <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-providers@latest/leaflet-providers.js"></script>
+
+</head>
+<body>
+<form method="GET" action="/index">
+
+    <div class="container_left">
+
+        <blockquote>The info displayed here is based only on your public IP address,
+            and that is where you're known in WWW, and it is free and public free accessible info for you.
+            Use the tool with attention please</blockquote>
+    </div>
+
+
+<div class="container">
+
+    <h1>Your public IP address is: {{ data.query }}</h1>
+
+
+    <h3>State/Country of origin: {{ data.country }} </h3>
+
+
+<ul>
+
+    <li>Region is named: {{ data.regionName }}</li>
+    <li>City of origin: {{ data.city }}</li>
+    <li>Zip/Postal code: {{ data.zip }}</li>
+    <li>Geo latitude in degrees: {{ data.lat }}</li>
+    <li>Geo longitude in degrees: {{ data.lon }}</li>
+    <li>Your timezone is: {{ data.timezone }}</li>
+
+</ul>
+
+</div>
+
+    <div class="container_mid">
+
+        <h1>{{ data.query }} : is your public IP address</h1>
+
+    </div>
+
+    <div class="container_bottom">
+
+        <h4> Your ISP is: {{ data.isp }} </h4>
+
+<ul>
+    <li>ISP Organization is: {{ data.org }}</li>
+    <li>ISP A.K.A.: {{ data.as }}</li>
+</ul>
+    </div>
+
+</form>
+
+
+<div class="wrapper">
+    <iframe
+    width="100%"
+    height="700"
+    frameborder="0" style="border:0"
+    referrerpolicy="no-referrer-when-downgrade"
+    src="/static/images/maps/maps_to.html"
+    allowfullscreen>
+    </iframe>
+
+
+<!--    <iframe src="/static/images/maps/maps_to.html" width="100%" height="700"></iframe>-->
+
+
+</div>
+
+
+</body>
+  <hr>
+
+<footer>
+
+
+
+
+
+<!--   <form method="POST" action="/traceroute">-->
+
+<!--    <div id="traceroute">-->
+<!--        <label for="traceroute text"></label>-->
+
+<!--        <textarea id="traceroute text" name="traceroute text">-->
+
+<!--        </textarea>-->
+
+<!--    </div>-->
+
+<!--<button onclick="console.trace(ip)" id="myBtn" title="Go to top">-->
+<!--    Trace-->
+<!--    </button>-->
+
+
+<!--    </form>-->
+
+</footer>
+<hr>
+
+</html>
