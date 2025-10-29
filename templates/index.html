@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <title>Проследи маршрут</title>
+  <style>
+    body { font-family: Arial,sans-serif; margin: 50px; background: #f9f9f9; }
+    h1 { color: #333; }
+    textarea { width: 100%; height: 300px; margin-top: 15px; }
+    input[type=text] { padding: 8px; width: 300px; }
+    button { padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; }
+    button:hover { background: #0056b3; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Проследи маршрут (Traceroute)</h1>
+  <form method="POST">
+    <label>Въведи IP или домейн:</label><br>
+      <label>
+          <input type="text" name="target" placeholder="например: 8.8.8.8" required>
+      </label>
+      <button type="submit">Проследи</button>
+  </form>
+
+  {% if result %}
+    <h2>Резултат:</h2>
+  <label>
+      <textarea readonly>{{ result }}</textarea>
+  </label>
+  {% endif %}
+</body>
+
+<footer>
+    &copy; 2018 Vesteros BG Ltd. All rights reserved. &copy;
+</footer>
+
+</html>
