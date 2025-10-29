@@ -1,8 +1,5 @@
-import re
-import shutil
-import subprocess
-
 from flask import Flask, render_template_string, request, jsonify
+import subprocess, shutil, re, threading, queue
 
 app = Flask(__name__)
 
@@ -89,12 +86,25 @@ HTML_PAGE = """
 """
 
 
+# --- Helper функция за изпълнение на команди в thread ---
+def run_command_thread(cmd_list, timeout_sec, result_q):
+    try:
+        output = subprocess.check_output(cmd_list, stderr=subprocess.STDOUT, text=True, timeout=timeout_sec)
+        result_q.put(output)
+    except subprocess.TimeoutExpired:
+        result_q.put('⚠️ Командата изтече поради timeout.')
+    except subprocess.CalledProcessError as e:
+        result_q.put(f"❌ Грешка:\n{e.output}")
+    except Exception as e:
+        result_q.put(f"💥 Неочаквана грешка: {type(e).__name__}: {e}")
+
+
 @app.route('/')
 def index():
     return render_template_string(HTML_PAGE)
 
 
-# ip route get
+# --- Безопасен endpoint за ip route get ---
 @app.route('/iproute', methods=['POST'])
 def ip_route():
     data = request.get_json()
@@ -106,21 +116,14 @@ def ip_route():
     if not ip_cmd:
         return jsonify({'result': '⚠️ Командата "ip" не е намерена в системата.'})
 
-    try:
-        out = subprocess.check_output([ip_cmd, "route", "get", target],
-                                      stderr=subprocess.STDOUT,
-                                      text=True,
-                                      timeout=60)
-        return jsonify({'result': f"(ip route get)\n{out}"})
-    except subprocess.TimeoutExpired:
-        return jsonify({'result': '⚠️ Времето за изпълнение изтече (ip route get).'})
-    except subprocess.CalledProcessError as e:
-        return jsonify({'result': f"❌ Грешка от ip route get:\n{e.output}"})
-    except Exception as e:
-        return jsonify({'result': f"💥 Неочаквана грешка: {type(e).__name__}: {e}"})
+    result_q = queue.Queue()
+    t = threading.Thread(target=run_command_thread, args=([ip_cmd, "route", "get", target], 10, result_q))
+    t.start();
+    t.join()
+    return jsonify({'result': result_q.get()})
 
 
-# traceroute
+# --- Безопасен endpoint за traceroute ---
 @app.route('/trace', methods=['POST'])
 def traceroute():
     data = request.get_json()
@@ -129,26 +132,17 @@ def traceroute():
         return jsonify({'result': '❌ Невалиден адрес!'})
 
     traceroute_cmd = shutil.which("traceroute")
-    timeout_cmd = shutil.which("timeout")
     if not traceroute_cmd:
         return jsonify({'result': '⚠️ traceroute не е инсталиран (sudo apt install traceroute)'})
 
-    try:
-        if timeout_cmd:
-            cmd = [timeout_cmd, "120", traceroute_cmd, "-m", "120", target]
-        else:
-            cmd = [traceroute_cmd, "-m", "15", target]
-        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True, timeout=120)
-        return jsonify({'result': f"(traceroute)\n{out}"})
-    except subprocess.TimeoutExpired:
-        return jsonify({'result': '⚠️ traceroute изтече поради timeout.'})
-    except subprocess.CalledProcessError as e:
-        return jsonify({'result': f"❌ traceroute грешка:\n{e.output}"})
-    except Exception as e:
-        return jsonify({'result': f"💥 Неочаквана грешка: {type(e).__name__}: {e}"})
+    result_q = queue.Queue()
+    t = threading.Thread(target=run_command_thread, args=([traceroute_cmd, "-m", "10", target], 20, result_q))
+    t.start();
+    t.join()
+    return jsonify({'result': result_q.get()})
 
 
-# ping
+# --- Безопасен endpoint за ping ---
 @app.route('/ping', methods=['POST'])
 def ping():
     data = request.get_json()
@@ -160,19 +154,12 @@ def ping():
     if not ping_cmd:
         return jsonify({'result': '⚠️ ping не е намерен (sudo apt install iputils-ping)'})
 
-    try:
-        out = subprocess.check_output([ping_cmd, "-c", "4", target],
-                                      stderr=subprocess.STDOUT,
-                                      text=True,
-                                      timeout=10)
-        return jsonify({'result': f"(ping)\n{out}"})
-    except subprocess.TimeoutExpired:
-        return jsonify({'result': '⚠️ ping изтече поради timeout.'})
-    except subprocess.CalledProcessError as e:
-        return jsonify({'result': f"❌ ping грешка:\n{e.output}"})
-    except Exception as e:
-        return jsonify({'result': f"💥 Неочаквана грешка: {type(e).__name__}: {e}"})
+    result_q = queue.Queue()
+    t = threading.Thread(target=run_command_thread, args=([ping_cmd, "-c", "4", target], 15, result_q))
+    t.start();
+    t.join()
+    return jsonify({'result': result_q.get()})
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000, debug=True)
